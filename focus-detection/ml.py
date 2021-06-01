@@ -31,16 +31,16 @@ def create_data(X,Y):
 
 def data():
     df = pd.read_csv('gsr_record.csv',header=0)
-    df = df.set_index('state')
+    df = df.set_index('STATE')
     df = df.drop([1])
 
     df_train = df.copy()
     df_train = df_train.drop([4,5])
-    x_train, y_train = create_data(df_train['gsr'],df_train.index.to_list())
+    x_train, y_train = create_data(df_train['GSR'],df_train.index.to_list())
 
     df_test = df.copy()
     df_test = df_test.drop([2,3])
-    x_test, y_test = create_data(df_test['gsr'],df_test.index.to_list())
+    x_test, y_test = create_data(df_test['GSR'],df_test.index.to_list())
 
     x_train = x_train.astype('float32')
     x_train -= x_train.mean(axis=0)
