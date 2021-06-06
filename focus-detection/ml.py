@@ -12,7 +12,7 @@ from keras.models import Sequential
 from keras.layers import Dense, Activation, Dropout, LSTM
 
 def create_data(X,Y):
-    time_step=128;
+    time_step=120;
     x_data, y_data = [], []
 
     for i in range(0,X.size-time_step,1):
@@ -26,8 +26,17 @@ def create_data(X,Y):
             y_data.append(1)
         if mode == 3 or mode == 5:
             y_data.append(0)
+            
+    x = np.array(x_data)
+    y = np.array(y_data).reshape(-1,1)
+    return x.astype('float32'), y.astype('float32')
 
-    return np.array(x_data), np.array(y_data).reshape(-1,1)
+def mean_and_std(x):
+    data = x.astype('float32')
+    mean = data.mean(axis=0)
+    data -= mean
+    std = data.std(axis=0)
+    return mean, std
 
 def data():
     df = pd.read_csv('gsr_record.csv',header=0)
@@ -42,13 +51,13 @@ def data():
     df_test = df_test.drop([2,3])
     x_test, y_test = create_data(df_test['GSR'],df_test.index.to_list())
 
-    x_train = x_train.astype('float32')
-    x_train -= x_train.mean(axis=0)
-    x_train /= x_train.std(axis=0)
-
-    x_test = x_test.astype('float32')
-    x_test -= x_test.mean(axis=0)
-    x_test /= x_test.std(axis=0)
+    mean, std = mean_and_std(x_train)
+    x_train -= mean
+    x_train /= std
+    
+    mean, std = mean_and_std(x_test)
+    x_test -= mean
+    x_test /= std
 
     x_train = np.reshape(x_train,[x_train.shape[0],x_train.shape[1],1])
     x_test = np.reshape(x_test,[x_test.shape[0],x_test.shape[1],1])
@@ -86,5 +95,5 @@ def best_model():
     
     x_train, y_train, x_test, y_test = data()
     val_loss, val_acc = best_model.evaluate(x_test, y_test)
-    return best_model
+    return best_model, x_mean, x_std
     
