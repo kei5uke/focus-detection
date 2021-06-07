@@ -6,11 +6,11 @@ import copy as cp
 def main():
 
     """
-    Example
     set 1 : calibration
-    set 2 : focus
-    set 3 : rest
-    ...
+    set 2 : focus data for train data
+    set 3 : rest data for train data
+    set 4 : focus data for validation
+    set 5 : rest data for validation
     """
     sets = [60,180,180,180,180]
     filename = input("Name CSV File: ")+'.csv'
@@ -23,7 +23,7 @@ def main():
     model = ml.best_model()
     
     #Start real time detection
-    
+   
     #record the data for 120sec
     sensor = GroveGSRSensor(0)
     values = []
