@@ -1,7 +1,9 @@
 import gsr
 import ml
-
+from sensors.grove_gsr_sensor import GroveGSRSensor
+import time
 import copy as cp
+import numpy as np
 
 def main():
 
@@ -12,7 +14,7 @@ def main():
     set 4 : focus data for validation
     set 5 : rest data for validation
     """
-    sets = [60,180,180,180,180]
+    sets = [60,120,120,120,120]
     filename = input("Name CSV File: ")+'.csv'
     
     #Collect GSR data for ML
@@ -20,35 +22,37 @@ def main():
     process_gsr.measure()
     
     #Collect the best ml model based on the recorded data
-    model = ml.best_model()
+    #and mean, std value
+    model, mean, std = ml.auto_tuning()
     
-    #Start real time detection
-   
+    "Start real time detection"
     #record the data for 120sec
     sensor = GroveGSRSensor(0)
     values = []
+    sec = 0.0
+
     for i in range(120):
-        values.append(sensor.GSR)
-    gsr = np.array(values).astype('float32')
-    
-    #Normalize the data
-    mean, std = ml.mean_and_std(gsr)
-    gsr -= mean
-    gsr /= std
-    
-    gsr = np.reshape(array,[array.shape[0],array.shape[1],1])
+        value = (sensor.GSR-mean)/std
+        values.append(value)
+        print('SEC:{0}-GSR:{1}'.format(sec,value))
+        sec += 0.5
+        time.sleep(0.5)
+
+    gsr_values = np.array([values]).astype('float32')
+    gsr_values = np.reshape(gsr_values,[gsr_values.shape[0],gsr_values.shape[1],1])
     
     while(1):
         #predict the result
-        result = model.predict(gsr)
+        result = model.predict(gsr_values)
         #delete the oldest value
-        gsr = np.delete(gsr, 119, axis=1)
+        gsr_values = np.delete(gsr_values, 0, axis=1)
         #update the new value
         value = (sensor.GSR - mean)/std
-        gsr = np.insert(gsr, 120, [[value]], axis=1)
-        
-        print("FOCUS") if np.average(result)>0.5 else print("NOT FOCUS")
-    
+        gsr_values = np.insert(gsr_values, 119, [[value]], axis=1)
+        print('SEC:{0}-GSR:{1}'.format(sec,value))
+        print("FOCUS\n") if np.average(result)>0.5 else print("NOT FOCUS\n")
+        sec += 0.5
+        time.sleep(0.5)
 
 if __name__ == '__main__':
     main()
