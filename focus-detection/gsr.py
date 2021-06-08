@@ -4,6 +4,7 @@ import time
 import csv
 import datetime
 import shutil
+import numpy as np
 from sensors.grove_gsr_sensor import GroveGSRSensor
 
 TEMP_CSV_PATH = "./gsr_record.csv"
@@ -26,7 +27,7 @@ class measure_gsr:
 
         sec = 0
         state = 0
-        for sec in range(sum(self.sets)):
+        for sec in np.arange(0,sum(self.sets),0.5):
             if sum(self.sets[:state]) == sec :
                 state += 1
                 print('---{}---'.format(state))
@@ -37,6 +38,6 @@ class measure_gsr:
 
         file.close()
         
-        #Move temporary csv to csv folder with name input
+        #Copy temporary csv to csv folder with name input
         shutil.copy(TEMP_CSV_PATH,self.filename)
         print("---FINISH---")
