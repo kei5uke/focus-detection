@@ -3,18 +3,23 @@ import logging
 import time
 import threading
 
-logger = logging.getLogger(__name__)
+from logging import basicConfig, getLogger, DEBUG
+logger = getLogger(__name__)
+logger.setLevel(DEBUG)
 PORT = '/dev/rfcomm0'
 
 
-'''
-This class works with threading module
-Set up bluetooth beforehand
-'''
-class NSEEGSensor:
-    def __init__(self):
-        self._terminate = False
-        self._stop = False
+class NSEEGSensor(threading.Thread):
+    '''
+    Class for NeuroSky EEG Sensor
+    This class works with threading module
+    Set up bluetooth beforehand
+    '''
+    def __init__(self, port: str):
+        threading.Thread.__init__(self)
+        self.__port = port
+        self.__terminate = False
+        self.__stop = False
         self.delta = 0
         self.theta = 0
         self.low_alpha = 0
@@ -24,33 +29,33 @@ class NSEEGSensor:
         self.low_gamma = 0
         self.mid_gamma = 0
 
-    def start_process(self):
+    def run(self):
         ''' Start up the main process '''
-        self._terminate, self._stop = False, False
-        self._update_sensor_values()
+        self.__terminate, self.__stop = False, False
+        self.__update_sensor_values()
 
     def stop_process(self):
         ''' Stop the process temporary '''
-        self._stop = True
+        self.__stop = True
 
     def continue_process(self):
         ''' Continue the stopped process '''
-        self._stop = False
+        self.__stop = False
 
     def terminate_process(self):
         ''' Terminate the working process '''
-        self._stop = True
-        self._terminate = True
+        self.__stop = True
+        self.__terminate = True
 
-    def _update_sensor_values(self):
+    def __update_sensor_values(self):
         ''' Main process
         Keep getting data packets from the sensor '''
         while True:
-            if self._terminate == True:
+            if self.__terminate == True:
                 break
-            if self._stop == False:
-                for pkt in thinkgear.ThinkGearProtocol(PORT).get_packets():
-                    if self._stop == True: break
+            if self.__stop == False:
+                for pkt in thinkgear.ThinkGearProtocol(self.__port).get_packets():
+                    if self.__stop == True: break
                     for d in pkt:
                         if isinstance(d, thinkgear.ThinkGearPoorSignalData) and d.value > 10:
                             print("[MindWave]Signal quality is poor")
@@ -82,13 +87,22 @@ class NSEEGSensor:
         return [self.delta, self.theta, self.low_alpha,
                 self.high_alpha, self.low_beta, self.high_beta,
                 self.low_gamma, self.mid_gamma]
+    @property
+    def is_working(self):
+        return not self.__terminate
+
 
 def test():
     logger.info('THREAD TESTING NOW')
     time.sleep(2)
 
 def main():
-    bs = NSEEGSensor()
+    basicConfig(
+        format='[%(asctime)s] %(name)s %(levelname)s: %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
+
+    bs = NSEEGSensor(port = PORT)
     t1 = threading.Thread(target=bs.start_process)
     # t1.setDaemon(True)
     t1.start()
@@ -115,7 +129,6 @@ def main():
     logger.info('TERMINATE process now...')
     bs.terminate_process()
     t1.join()
-
 
 if __name__ == '__main__':
     main()
