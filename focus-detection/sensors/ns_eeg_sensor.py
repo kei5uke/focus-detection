@@ -10,17 +10,17 @@ logger.setLevel(DEBUG)
 PORT = '/dev/rfcomm0'
 
 
-class EEGSensor(threading.Thread):
+class EEGSensor:
     '''
     Class for NeuroSky MindWAve EEG Sensor
-    This class works with threading module
+    Use threading module if you want to record the data along with @property method
     Set up bluetooth beforehand
     '''
-    def __init__(self, port: str):
-        threading.Thread.__init__(self)
+    def __init__(self, port: str, show_progress = False):
         self.__port = port
         self.__terminate = False
         self.__pause = False
+        self.__show_progress = show_progress
         self.delta = 0
         self.theta = 0
         self.low_alpha = 0
@@ -30,54 +30,42 @@ class EEGSensor(threading.Thread):
         self.low_gamma = 0
         self.mid_gamma = 0
 
-    def run(self):
-        ''' @Override threading method
-        Start up the main process
-        Execute with .start() '''
-        logger.info('[MindWave]Connect to EEG Sensor...')
-        try:
-            self.__update_eeg_values()
-        except KeyboardInterrupt:
-            logger.info('[MindWave]Stopped with Ctrl+C')
-
-    def __update_eeg_values(self):
+    def start_eeg_sensor(self):
         ''' Main process
         Keep getting data packets from the sensor '''
-        while True:
-            if self.__terminate == True:
-                break
+        logger.info('Connect to EEG sensor')
+        for pkt in thinkgear.ThinkGearProtocol(self.__port).get_packets():
+            if self.__terminate == True: break
             if self.__pause == False:
-                for pkt in thinkgear.ThinkGearProtocol(self.__port).get_packets():
-                    for d in pkt:
-                        if isinstance(d, thinkgear.ThinkGearPoorSignalData) and d.value > 10:
-                            logger.info('[MindWave]Signal quality is poor')
-                        if isinstance(d, thinkgear.ThinkGearEEGPowerData):
-                            logger.debug('[MindWave]Scannig Sensor data...')
-                            self.delta = d.value.delta
-                            self.theta = d.value.theta
-                            self.low_alpha = d.value.lowalpha
-                            self.high_alpha = d.value.highalpha
-                            self.low_beta = d.value.lowbeta
-                            self.high_beta = d.value.highbeta
-                            self.low_gamma = d.value.lowgamma
-                            self.mid_gamma = d.value.midgamma
-                            #self.printData()
-                    if self.__pause == True: break
+                for d in pkt:
+                    if isinstance(d, thinkgear.ThinkGearPoorSignalData) and d.value > 10:
+                        logger.debug('Signal quality is poor')
+                    if isinstance(d, thinkgear.ThinkGearEEGPowerData):
+                        logger.debug('Scannig Sensor data...')
+                        self.delta = d.value.delta
+                        self.theta = d.value.theta
+                        self.low_alpha = d.value.lowalpha
+                        self.high_alpha = d.value.highalpha
+                        self.low_beta = d.value.lowbeta
+                        self.high_beta = d.value.highbeta
+                        self.low_gamma = d.value.lowgamma
+                        self.mid_gamma = d.value.midgamma
+                        if self.__show_progress: self.print_data()
 
     def pause_eeg_sensor(self):
         ''' Stop the process temporary '''
-        logger.info('[MindWave]Process has been stopped')
+        logger.info('Stop updating values')
         self.__pause = True
 
     def continue_eeg_sensor(self):
         ''' Continue the stopped process '''
-        logger.info('[MindWave]Continue updating values')
+        logger.info('Continue updating values')
         self.__pause = False
 
     def terminate_eeg_sensor(self):
         ''' Terminate the connection of EEG sensor '''
-        logger.info('[MindWave]Terminate connection')
-        self.__pause = True
+        logger.info('Terminate connection')
+        # self.__pause = True
         self.__terminate = True
 
     def print_data(self):
@@ -100,43 +88,13 @@ class EEGSensor(threading.Thread):
         return not self.__terminate
 
 
-def test():
-    logger.info('THREAD TESTING NOW')
-    time.sleep(2)
-
 def main():
     basicConfig(
         format='[%(asctime)s] %(name)s %(levelname)s: %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S'
     )
-
-    bs = EEGSensor(port = PORT)
-    t1 = threading.Thread(target=bs.start_process)
-    # t1.setDaemon(True)
-    t1.start()
-
-    for i in range(5):
-        t2 = threading.Thread(target=test)
-        t2.start()
-        t2.join()
-
-    logger.info('STOP for now...')
-    bs.stop_process()
-    for i in range(5):
-        t2 = threading.Thread(target=test)
-        t2.start()
-        t2.join()
-
-    logger.info('CONTINUE from now on...')
-    bs.continue_process()
-    for i in range(5):
-        t2 = threading.Thread(target=test)
-        t2.start()
-        t2.join()
-
-    logger.info('TERMINATE process now...')
-    bs.terminate_process()
-    t1.join()
+    eeg = EEGSensor(port = PORT, show_progress = True)
+    eeg.start_eeg_sensor()
 
 if __name__ == '__main__':
     main()

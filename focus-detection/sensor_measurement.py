@@ -23,22 +23,19 @@ class SensorMeasurement(GSRSensor, EEGSensor):
         self.__sessions = sessions
         self.__step = step
         self.__filename = '../csv/' + filename
-        self.data = None
 
         super().__init__(gsr_port) # Inheritence of EEG
         super(GSRSensor, self).__init__(port = eeg_port) # Inheritence of GSR
-        super(EEGSensor, self).__init__()
 
     def start_sensor_connection(self):
-        '''
-        Start up the all sensor connection '''
+        ''' Start up the all sensor connection '''
         logger.info('Connect to all of sensors...')
-        #super(GSRSensor, self).run()
-        EEGSensor.start(self)
-        # Add other sensor function below for future use
+        t1 = threading.Thread(target = EEGSensor.start_eeg_sensor, args = (self,))
+        t1.start()
+        #Future use: Add new sensor class and thread
 
     def pause_sensor_connection(self):
-        ''' Stop all connections temporary '''
+        ''' Stop updating values temporary '''
         logger.info('Pause connection...')
         super(GSRSensor, self).pause_eeg_sensor()
 
@@ -53,24 +50,12 @@ class SensorMeasurement(GSRSensor, EEGSensor):
         super(GSRSensor, self).terminate_eeg_sensor()
 
     def collect_data_for_ml(self):
-        if not super(GSRSensor, self).is_working : raise RuntimeError('EEG is not working. run .start() beforehand')
-        if isinstance(super().GSR, int) == False: raise RuntimeError('GSR Sensor is not working properly')
-        self.__measure_data()
+        if not super(GSRSensor, self).is_working : raise RuntimeError('EEG is not working. Make connection beforehand')
+        if isinstance(super().GSR, int) == False: raise RuntimeError('GSR Sensor is not working properly.')
+        data = self.__measure_data()
         self.pause_sensor_connection()
-        self.output_csv()
-        self.terminate_sensor_connection()
-
-    def output_csv(self):
-        ''' Recieve the data and write it in csv '''
-        if self.data == None: raise RuntimeError('Data is empty. Not measured yet.')
-        logger.info('Output csv')
-        with open(TEMP_CSV_PATH, 'w') as file:
-            writer = csv.writer(file, lineterminator='\n')
-            writer.writerow(['SEC', 'STATE', 'GSR','Delta','Theta','Low_Alpha',
-                             'High_Alpha','Low_Beta','High_Beta','Low_Gamma','Mid_Gamma'])
-            for row in self.data:
-                writer.writerow(row)
-        logger.info('Finish outputting csv')
+        self.__output_csv(data)
+        self.continue_sensor_connection()
 
     def __measure_data(self):
         ''' Gather sensors data
@@ -88,7 +73,19 @@ class SensorMeasurement(GSRSensor, EEGSensor):
             time.sleep(self.__step)
 
         logger.info('Finish gathering sensors data')
-        self.data = data
+        return data
+
+    def __output_csv(self, data):
+        ''' Recieve the data and write it in csv '''
+        if data == None: raise RuntimeError('Data is empty. Not measured yet.')
+        logger.info('Output csv')
+        with open(TEMP_CSV_PATH, 'w') as file:
+            writer = csv.writer(file, lineterminator='\n')
+            writer.writerow(['SEC', 'STATE', 'GSR','Delta','Theta','Low_Alpha',
+                             'High_Alpha','Low_Beta','High_Beta','Low_Gamma','Mid_Gamma'])
+            for row in data:
+                writer.writerow(row)
+        logger.info('Finish outputting csv')
 
 
 def main():
@@ -99,8 +96,9 @@ def main():
     print(SensorMeasurement.mro())
     sensor = SensorMeasurement(sessions = [10, 10, 10], filename = 'test.csv',
                                eeg_port = EEG_PORT, gsr_port = GSR_PORT)
-    sensor.start()
+    sensor.start_sensor_connection()
     sensor.collect_data_for_ml()
+    sensor.terminate_sensor_connection()
 
 if __name__ == '__main__':
     main()
