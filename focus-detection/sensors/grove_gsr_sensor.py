@@ -5,16 +5,32 @@ from logging import basicConfig, getLogger, DEBUG
 logger = getLogger(__name__)
 logger.setLevel(DEBUG)
 
+PORT = 0
+
 class GSRSensor:
     '''
     Class for Grove GSR sensor
     '''
-    def __init__(self, channel):
-        self._channel = channel
-        self._adc = ADC()
+    def __init__(self, port):
+        self.__port = port
+        self.__adc = ADC()
+        logger.info('Connect to GSR sensor')
 
     @property
     def GSR(self):
-        logger.info('[GSR]Scanning sensor data...')
-        value = self._adc.read(self._channel)
+        logger.debug('Scanning sensor data...')
+        value = self.__adc.read(self.__port)
         return value
+
+
+def main():
+    basicConfig(
+        format='[%(asctime)s] %(name)s %(levelname)s: %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
+    gsr = GSRSensor(port = PORT)
+    while True:
+        logger.debug(f'GSR:{gsr.GSR()}')
+
+if __name__ == '__main__':
+    main()
