@@ -6,12 +6,13 @@ import threading
 from logging import basicConfig, getLogger, DEBUG
 logger = getLogger(__name__)
 logger.setLevel(DEBUG)
+
 PORT = '/dev/rfcomm0'
 
 
-class NSEEGSensor(threading.Thread):
+class EEGSensor(threading.Thread):
     '''
-    Class for NeuroSky EEG Sensor
+    Class for NeuroSky MindWAve EEG Sensor
     This class works with threading module
     Set up bluetooth beforehand
     '''
@@ -19,7 +20,7 @@ class NSEEGSensor(threading.Thread):
         threading.Thread.__init__(self)
         self.__port = port
         self.__terminate = False
-        self.__stop = False
+        self.__pause = False
         self.delta = 0
         self.theta = 0
         self.low_alpha = 0
@@ -30,36 +31,28 @@ class NSEEGSensor(threading.Thread):
         self.mid_gamma = 0
 
     def run(self):
-        ''' Start up the main process '''
-        self.__terminate, self.__stop = False, False
-        self.__update_sensor_values()
+        ''' @Override threading method
+        Start up the main process
+        Execute with .start() '''
+        logger.info('[MindWave]Connect to EEG Sensor...')
+        try:
+            self.__update_eeg_values()
+        except KeyboardInterrupt:
+            logger.info('[MindWave]Stopped with Ctrl+C')
 
-    def stop_process(self):
-        ''' Stop the process temporary '''
-        self.__stop = True
-
-    def continue_process(self):
-        ''' Continue the stopped process '''
-        self.__stop = False
-
-    def terminate_process(self):
-        ''' Terminate the working process '''
-        self.__stop = True
-        self.__terminate = True
-
-    def __update_sensor_values(self):
+    def __update_eeg_values(self):
         ''' Main process
         Keep getting data packets from the sensor '''
         while True:
             if self.__terminate == True:
                 break
-            if self.__stop == False:
+            if self.__pause == False:
                 for pkt in thinkgear.ThinkGearProtocol(self.__port).get_packets():
-                    if self.__stop == True: break
                     for d in pkt:
                         if isinstance(d, thinkgear.ThinkGearPoorSignalData) and d.value > 10:
-                            print("[MindWave]Signal quality is poor")
+                            logger.info('[MindWave]Signal quality is poor')
                         if isinstance(d, thinkgear.ThinkGearEEGPowerData):
+                            logger.debug('[MindWave]Scannig Sensor data...')
                             self.delta = d.value.delta
                             self.theta = d.value.theta
                             self.low_alpha = d.value.lowalpha
@@ -68,19 +61,34 @@ class NSEEGSensor(threading.Thread):
                             self.high_beta = d.value.highbeta
                             self.low_gamma = d.value.lowgamma
                             self.mid_gamma = d.value.midgamma
-                            logger.debug('[MindWave]Scannig Sensor data...')
                             #self.printData()
-            else: print('[MindWave]Process stopped currently')
+                    if self.__pause == True: break
+
+    def pause_eeg_sensor(self):
+        ''' Stop the process temporary '''
+        logger.info('[MindWave]Process has been stopped')
+        self.__pause = True
+
+    def continue_eeg_sensor(self):
+        ''' Continue the stopped process '''
+        logger.info('[MindWave]Continue updating values')
+        self.__pause = False
+
+    def terminate_eeg_sensor(self):
+        ''' Terminate the connection of EEG sensor '''
+        logger.info('[MindWave]Terminate connection')
+        self.__pause = True
+        self.__terminate = True
 
     def print_data(self):
-        print(f'delta:{self.delta}')
-        print(f'theta:{self.theta}')
-        print(f'lowAlpha:{self.low_alpha}')
-        print(f'highAlpha:{self.high_alpha}')
-        print(f'lowBeta:{self.low_beta}')
-        print(f'highBeta:{self.high_beta}')
-        print(f'lowGamma:{self.low_gamma}')
-        print(f'midGamma:{self.mid_gamma}')
+        logger.debug(f'delta:{self.delta}')
+        logger.debug(f'theta:{self.theta}')
+        logger.debug(f'lowAlpha:{self.low_alpha}')
+        logger.debug(f'highAlpha:{self.high_alpha}')
+        logger.debug(f'lowBeta:{self.low_beta}')
+        logger.debug(f'highBeta:{self.high_beta}')
+        logger.debug(f'lowGamma:{self.low_gamma}')
+        logger.debug(f'midGamma:{self.mid_gamma}')
 
     @property
     def EEG(self):
@@ -102,7 +110,7 @@ def main():
         datefmt='%Y-%m-%d %H:%M:%S'
     )
 
-    bs = NSEEGSensor(port = PORT)
+    bs = EEGSensor(port = PORT)
     t1 = threading.Thread(target=bs.start_process)
     # t1.setDaemon(True)
     t1.start()
