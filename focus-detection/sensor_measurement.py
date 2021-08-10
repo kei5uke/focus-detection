@@ -4,11 +4,9 @@ import csv
 import math
 import time
 import numpy as np
-import threading
-
-from logging import basicConfig, getLogger, DEBUG
-logger = getLogger(__name__)
-logger.setLevel(DEBUG)
+import concurrent.futures
+import logging
+logger = logging.getLogger(__name__)
 
 TEMP_CSV_PATH = './sensor_record.csv'
 EEG_PORT = '/dev/rfcomm0'
@@ -30,9 +28,9 @@ class SensorMeasurement(GSRSensor, EEGSensor):
     def start_sensor_connection(self):
         ''' Start up the all sensor connection '''
         logger.info('Connect to all of sensors...')
-        t1 = threading.Thread(target = EEGSensor.start_eeg_sensor, args = (self,))
-        t1.start()
-        #Future use: Add new sensor class and thread
+        executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+        executor.submit(EEGSensor.start_eeg_sensor, self)
+        #Future use: Add new sensor class and executor
 
     def pause_sensor_connection(self):
         ''' Stop updating values temporary '''
@@ -66,6 +64,7 @@ class SensorMeasurement(GSRSensor, EEGSensor):
         for sec in np.arange(0, sum(self.__sessions), self.__step):
             if sum(self.__sessions[:state]) == sec:
                 state += 1
+                logger.info(f'---SESSION {state}---')
             row = []
             row.extend([sec, state, super().GSR])
             row.extend(super(GSRSensor, self).EEG)
@@ -79,7 +78,7 @@ class SensorMeasurement(GSRSensor, EEGSensor):
         ''' Recieve the data and write it in csv '''
         if data == None: raise RuntimeError('Data is empty. Not measured yet.')
         logger.info('Output csv')
-        with open(TEMP_CSV_PATH, 'w') as file:
+        with open(self.__filename, 'w') as file:
             writer = csv.writer(file, lineterminator='\n')
             writer.writerow(['SEC', 'STATE', 'GSR','Delta','Theta','Low_Alpha',
                              'High_Alpha','Low_Beta','High_Beta','Low_Gamma','Mid_Gamma'])
@@ -89,12 +88,16 @@ class SensorMeasurement(GSRSensor, EEGSensor):
 
 
 def main():
-    basicConfig(
+    logging.basicConfig(
         format='[%(asctime)s] %(name)s %(levelname)s: %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S'
     )
+    module_levels = {'sensors': logging.INFO, __name__: logging.INFO}
+    for module, level in module_levels.items():
+        logging.getLogger(module).setLevel(level=level)
+
     print(SensorMeasurement.mro())
-    sensor = SensorMeasurement(sessions = [10, 10, 10], filename = 'test.csv',
+    sensor = SensorMeasurement(sessions = [12, 12, 12], filename = 'test.csv',
                                eeg_port = EEG_PORT, gsr_port = GSR_PORT)
     sensor.start_sensor_connection()
     sensor.collect_data_for_ml()
