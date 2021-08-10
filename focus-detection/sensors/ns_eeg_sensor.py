@@ -2,10 +2,8 @@ import thinkgear
 import logging
 import time
 import threading
-
-from logging import basicConfig, getLogger, DEBUG
-logger = getLogger(__name__)
-logger.setLevel(DEBUG)
+import logging
+logger = logging.getLogger(__name__)
 
 PORT = '/dev/rfcomm0'
 
@@ -39,9 +37,9 @@ class EEGSensor:
             if self.__pause == False:
                 for d in pkt:
                     if isinstance(d, thinkgear.ThinkGearPoorSignalData) and d.value > 10:
-                        logger.debug('Signal quality is poor')
+                        logger.info('Signal quality is poor')
                     if isinstance(d, thinkgear.ThinkGearEEGPowerData):
-                        logger.debug('Scannig Sensor data...')
+                        logger.info('Scannig Sensor data...')
                         self.delta = d.value.delta
                         self.theta = d.value.theta
                         self.low_alpha = d.value.lowalpha
@@ -50,7 +48,14 @@ class EEGSensor:
                         self.high_beta = d.value.highbeta
                         self.low_gamma = d.value.lowgamma
                         self.mid_gamma = d.value.midgamma
-                        if self.__show_progress: self.print_data()
+                        logger.debug(f'delta:{self.delta}')
+                        logger.debug(f'theta:{self.theta}')
+                        logger.debug(f'lowAlpha:{self.low_alpha}')
+                        logger.debug(f'highAlpha:{self.high_alpha}')
+                        logger.debug(f'lowBeta:{self.low_beta}')
+                        logger.debug(f'highBeta:{self.high_beta}')
+                        logger.debug(f'lowGamma:{self.low_gamma}')
+                        logger.debug(f'midGamma:{self.mid_gamma}')
 
     def pause_eeg_sensor(self):
         ''' Stop the process temporary '''
@@ -68,15 +73,6 @@ class EEGSensor:
         # self.__pause = True
         self.__terminate = True
 
-    def print_data(self):
-        logger.debug(f'delta:{self.delta}')
-        logger.debug(f'theta:{self.theta}')
-        logger.debug(f'lowAlpha:{self.low_alpha}')
-        logger.debug(f'highAlpha:{self.high_alpha}')
-        logger.debug(f'lowBeta:{self.low_beta}')
-        logger.debug(f'highBeta:{self.high_beta}')
-        logger.debug(f'lowGamma:{self.low_gamma}')
-        logger.debug(f'midGamma:{self.mid_gamma}')
 
     @property
     def EEG(self):
@@ -84,15 +80,16 @@ class EEGSensor:
                 self.high_alpha, self.low_beta, self.high_beta,
                 self.low_gamma, self.mid_gamma]
     @property
-    def is_working(self):
+    def is_eeg_working(self):
         return not self.__terminate
 
 
 def main():
-    basicConfig(
+    logging.basicConfig(
         format='[%(asctime)s] %(name)s %(levelname)s: %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S'
     )
+    logging.getLogger(__name__).setLevel(level = logging.DEBUG)
     eeg = EEGSensor(port = PORT, show_progress = True)
     eeg.start_eeg_sensor()
 

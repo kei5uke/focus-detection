@@ -1,11 +1,9 @@
 from grove.adc import ADC
 import logging
-
-from logging import basicConfig, getLogger, DEBUG
-logger = getLogger(__name__)
-logger.setLevel(DEBUG)
+logger = logging.getLogger(__name__)
 
 PORT = 0
+
 
 class GSRSensor:
     '''
@@ -18,19 +16,21 @@ class GSRSensor:
 
     @property
     def GSR(self):
-        logger.debug('Scanning sensor data...')
+        logger.info('Scanning sensor data...')
         value = self.__adc.read(self.__port)
         return value
 
 
 def main():
-    basicConfig(
+    logging.basicConfig(
         format='[%(asctime)s] %(name)s %(levelname)s: %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S'
     )
+    logging.getLogger(__name__).setLevel(level = logging.DEBUG)
+
     gsr = GSRSensor(port = PORT)
     while True:
-        logger.debug(f'GSR:{gsr.GSR()}')
+        logger.debug(f'GSR:{gsr.GSR}')
 
 if __name__ == '__main__':
     main()
