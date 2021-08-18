@@ -16,7 +16,7 @@ class GSRSensor:
 
     @property
     def GSR(self):
-        logger.info('Scanning sensor data...')
+        logger.debug('Scanning sensor data...')
         value = self.__adc.read(self.__port)
         return value
 

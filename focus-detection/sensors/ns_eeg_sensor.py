@@ -37,9 +37,9 @@ class EEGSensor:
             if self.__pause == False:
                 for d in pkt:
                     if isinstance(d, thinkgear.ThinkGearPoorSignalData) and d.value > 10:
-                        logger.info('Signal quality is poor')
+                        logger.warning('Signal quality is poor')
                     if isinstance(d, thinkgear.ThinkGearEEGPowerData):
-                        logger.info('Scannig Sensor data...')
+                        logger.debug('Scannig Sensor data...')
                         self.delta = d.value.delta
                         self.theta = d.value.theta
                         self.low_alpha = d.value.lowalpha
