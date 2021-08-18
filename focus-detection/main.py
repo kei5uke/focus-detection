@@ -30,7 +30,7 @@ def main():
     copy_filename = input("Name CSV File: ")
 
     # If the file name already exist, proceed to load model
-    if os.path.isdir('../model/' + copy_filename):
+    if os.path.isdir('../keras_model/' + copy_filename):
         choice = input('Found the same name of the file. Load the model? [y/n]:').lower()
         if choice == 'y':
             copyfile('../csv/' + copy_filename + '.csv', TEMP_CSV_PATH)

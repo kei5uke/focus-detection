@@ -97,7 +97,7 @@ def auto_tuning(filename: str):
     print(f'Test loss:{test_loss}, Test acc:{test_acc}')
     print(f'Best Run:{best_run}')
 
-    best_model.save('../model/' + filename)
+    best_model.save('../keras_model/' + filename)
 
     return best_model, mean, std
 
