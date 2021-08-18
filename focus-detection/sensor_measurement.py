@@ -93,7 +93,7 @@ class SensorMeasurement(GSRSensor, EEGSensor):
                              'High_Alpha','Low_Beta','High_Beta','Low_Gamma','Mid_Gamma'])
             for row in data:
                 writer.writerow(row)
-        shutil.copyfile(TEMP_CSV_PATH, filename)
+        shutil.copyfile(TEMP_CSV_PATH, '../csv/' + filename + 'csv')
         logger.info('Finish outputting csv')
 
 
