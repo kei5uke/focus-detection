@@ -1,4 +1,4 @@
-# focus-detection  
+# focus-detection (First version)
 This is the re-creation of the project that I worked on before graduated from college in 2019.  
 The main goal of this project is detecting if the user is focusing on some kind of works, such as reading, watching videos, playing sudoku or whatever stimulus human nerve system.  
 ### GSR
