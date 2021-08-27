@@ -14,11 +14,10 @@ class EEGSensor:
     Use threading module if you want to record the data along with @property method
     Set up bluetooth beforehand
     '''
-    def __init__(self, port: str, show_progress = False):
+    def __init__(self, port: str):
         self.__port = port
         self.__terminate = False
         self.__pause = False
-        self.__show_progress = show_progress
         self.delta = 0
         self.theta = 0
         self.low_alpha = 0
@@ -90,7 +89,7 @@ def main():
         datefmt='%Y-%m-%d %H:%M:%S'
     )
     logging.getLogger(__name__).setLevel(level = logging.DEBUG)
-    eeg = EEGSensor(port = PORT, show_progress = True)
+    eeg = EEGSensor(port = PORT)
     eeg.start_eeg_sensor()
 
 if __name__ == '__main__':
