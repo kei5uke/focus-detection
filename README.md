@@ -8,7 +8,7 @@ To achieve this goal, I used [GSR sensor from Grove](https://wiki.seeedstudio.co
 GSR stands for galvanic skin responce, which is a way of measuring the electrical conductance of the skin. Research shows that the value of GSR goes down when emotional arousal changes, on the other hand, it goes up when emotionally stable(relaxed).  
 ### [NEW] EEG     
 <img src="https://user-images.githubusercontent.com/33390452/130960330-a60ab3f9-69c9-4209-8706-e8d922aa12df.jpg" width="500" height="250"></img>  
-I added [EEG sensor from NeuroSky](https://store.neurosky.com/pages/mindwave). This tool can measure various bran waves such as alpha, beta, etc. It can be connected via bluetooth on any devices.   
+I added [EEG sensor from NeuroSky](https://store.neurosky.com/pages/mindwave). This tool can measure various brain waves such as alpha, beta, etc. It can be connected via bluetooth on any devices.   
 Each brain wave has its own characteristics and will be able to capture changes in arousal, relaxation, and emotions.
 ## Neural Network 
 After measuring the data, system start training neural network model.  
@@ -43,4 +43,4 @@ thinkgear==0.2
 - It takes almost 2 minutes to train the model. (sort of slow)
 - Uncertain if trained model can be used for others.
 ## Note
-Thinkgear library is only available for Python2 so please rewrite the code with [this](https://github.com/groner/pythinkgear/pull/4/commits/2c13093b878dd8c7bb071ecc7f5e956de4e72d9d)
+Thinkgear library is only available for Python2 so please replace the code with [this](https://github.com/groner/pythinkgear/pull/4/commits/2c13093b878dd8c7bb071ecc7f5e956de4e72d9d)
