@@ -1,6 +1,6 @@
 # focus-detection  
-This is the re-creation of the project that I worked on before graduated from college in 2019.  
-The main goal of this project is capturing features from the data measured by the sensors and detecting if the user is focusing on some kind of works, such as reading, watching videos, playing sudoku or whatever stimulus human nerve system.  
+This is re-creation of the project that I worked on before graduated from college in 2019.  
+Main goal of this project is capturing features from the data measured by the sensors and detecting if the user is focusing on some kind of works, such as reading, watching videos, playing sudoku or whatever stimulus human nerve system.  
 ## Sensors
 ### GSR
 <img src="https://user-images.githubusercontent.com/33390452/130960335-2aeb0d29-f083-4633-b283-fc15a75a20e0.jpg" width="500" height="250"></img>  
