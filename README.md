@@ -1,5 +1,5 @@
 # focus-detection  
-This is a re-creation of the project I worked on before graduating from college in 2019.
+This is a re-creation of the project I worked on before graduating from college in 2019.  
 The main goal of this project is to capture characteristic features from the data measured by the sensors and detect if the user is focusing on activities such as reading, watching videos, playing sudoku, or any other stimulus that engages the human nervous system.
 
 ## Sensors
